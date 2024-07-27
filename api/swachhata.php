@@ -1,38 +1,39 @@
 <?php
-include('../config.php');
-
-function callAPI($method, $endpoint, $data = []) {
-    $url = API_BASE_URL . $endpoint;
-    $headers = [
-        'Content-Type: application/json'
-    ];
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-
-    if ($method === 'POST' || $method === 'PUT') {
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    }
-
-    $response = curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    return [
-        'httpcode' => $httpcode,
-        'response' => json_decode($response, true)
-    ];
-}
-
 function postComplaint($data) {
-    return callAPI('POST', '/post-complaint', $data);
+    $url = API_BASE_URL . 'complaint/post';
+    return apiRequest($url, $data);
 }
 
-function getComplaints($params = []) {
-    $endpoint = '/getComplaints?' . http_build_query($params);
-    return callAPI('GET', $endpoint);
+function getComplaints($params) {
+    $url = API_BASE_URL . 'complaint/list';
+    return apiRequest($url, $params);
+}
+
+function getComplaintDetails($params) {
+    $url = API_BASE_URL . 'complaint/details';
+    return apiRequest($url, $params);
+}
+
+function updateComplaint($data) {
+    $url = API_BASE_URL . 'complaint/update';
+    return apiRequest($url, $data);
+}
+
+function deleteComplaint($params) {
+    $url = API_BASE_URL . 'complaint/delete';
+    return apiRequest($url, $params);
+}
+
+function apiRequest($url, $data) {
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method'  => 'POST',
+            'content' => http_build_query($data)
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    return json_decode($result, true);
 }
 ?>
